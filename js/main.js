@@ -85,7 +85,7 @@ function renderProjectCard(p) {
     : '';
   const thumbStyle = !p.thumbnail ? `style="background:var(--color-border-light)"` : '';
   return `
-    <a class="project-card" href="/project/${p.slug}.html">
+    <a class="project-card" href="/project/?slug=${p.slug}">
       <div class="project-card-media">
         <img class="card-thumb" src="${p.thumbnail || ''}" alt="${p.name}"
           onerror="this.style.display='none'"
@@ -185,7 +185,7 @@ async function initAboutPage() {
 // ─── PAGE: PROJECT DETAIL ──────────────────────────────────────────
 
 async function initProjectDetailPage() {
-  const slug = window.location.pathname.split('/').pop().replace('.html', '');
+  const slug = new URLSearchParams(window.location.search).get('slug') || window.location.pathname.split('/').pop().replace('.html', '');
   const [projects] = await Promise.all([fetchJSON('/data/projects.json')]);
   if (!projects) return;
 
@@ -234,7 +234,7 @@ async function initProjectDetailPage() {
   const others = projects.filter(p => p.slug !== slug).slice(0, 3);
   if (el('more-work-grid')) {
     el('more-work-grid').innerHTML = others.map(p => `
-      <a class="more-work-card" href="/project/${p.slug}.html">
+      <a class="more-work-card" href="/project/?slug=${p.slug}">
         <div class="more-work-thumb">
           <img src="${p.thumbnail}" alt="${p.name}" onerror="this.style.background='var(--color-border-light)';this.style.display='none'">
         </div>
