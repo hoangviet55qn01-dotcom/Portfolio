@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — Hoàng Việt</title>
+  <meta name="description" content="UX/UI Designer crafting seamless digital experiences across consumer tech, healthcare, and fintech.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Page-specific overrides */
+    body {
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body data-page="home">
+
+  <div class="site-wrapper">
+    <div class="home-layout">
+
+      <!-- LEFT: SIDEBAR -->
+      <aside id="sidebar" class="sidebar">
+        <!-- Rendered by JS from profile.json -->
+        <div class="sidebar-avatar skeleton" style="width:40px;height:40px"></div>
+        <div class="skeleton" style="width:120px;height:22px;margin-top:8px"></div>
+        <div class="skeleton" style="width:100%;height:80px;margin-top:4px"></div>
+      </aside>
+
+      <!-- RIGHT: MAIN CONTENT -->
+      <main class="main-content">
+        <!-- PROJECT CARDS -->
+        <div id="projects-list" class="projects-list">
+          <!-- Loading placeholders -->
+          <div class="project-card">
+            <div class="project-card-media skeleton" style="aspect-ratio:16/9;border-radius:var(--radius-xl)"></div>
+          </div>
+          <div class="project-card">
+            <div class="project-card-media skeleton" style="aspect-ratio:16/9;border-radius:var(--radius-xl)"></div>
+          </div>
+        </div>
+
+        <!-- CLIENTS LOGOS -->
+        <div class="clients-section">
+          <div id="clients-logos" class="clients-logos">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

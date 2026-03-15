@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "company": "Whop",
+    "role": "Product Designer",
+    "description": "Leading product design for a digital commerce platform, working closely with engineering and product teams to create intuitive user experiences.",
+    "logo": "/assets/images/logo-whop.jpg",
+    "startDate": "2024",
+    "endDate": "",
+    "order": 1
+  },
+  {
+    "id": 2,
+    "company": "Polestar",
+    "role": "UX Designer",
+    "description": "Designed digital touchpoints for the premium electric vehicle brand, including configurator tools and owner app experiences.",
+    "logo": "/assets/images/logo-polestar.jpg",
+    "startDate": "2022",
+    "endDate": "2024",
+    "order": 2
+  },
+  {
+    "id": 3,
+    "company": "Linear",
+    "role": "Product Designer",
+    "description": "Contributed to the design of project management tools used by thousands of engineering teams worldwide.",
+    "logo": "/assets/images/logo-linear.jpg",
+    "startDate": "2021",
+    "endDate": "2022",
+    "order": 3
+  },
+  {
+    "id": 4,
+    "company": "Raycast",
+    "role": "UI Designer",
+    "description": "Designed interfaces and extensions for the developer productivity tool, focusing on speed and usability.",
+    "logo": "/assets/images/logo-raycast.jpg",
+    "startDate": "2019",
+    "endDate": "2021",
+    "order": 4
+  }
+]

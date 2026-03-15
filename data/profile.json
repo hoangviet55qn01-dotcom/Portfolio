@@ -1,0 +1,23 @@
+{
+  "name": "Hoàng Việt",
+  "avatar": "/assets/images/avatar.jpg",
+  "profileImage": "/assets/images/profile-large.jpg",
+  "tagline": "Crafting the Future, One Pixel at a Time",
+  "subtitle": "Passionate about creating impactful, user-centered web app experiences across industries.",
+  "bio1": "As a product designer, I specialize in crafting seamless web app experiences across diverse industries including consumer tech, healthcare, and fintech. With over a decade of experience, I've had the privilege of working with talented teams to launch innovative products that not only meet user needs but also drive business success. My work has contributed to securing over $20M in investment funding, and I take pride in designing intuitive solutions that push the boundaries of what's possible.",
+  "bio2": "I'm passionate about creating experiences that blend creativity with functionality, ensuring every product is not just aesthetically pleasing but also purposeful. Whether collaborating with startups or established enterprises, I'm committed to helping brands deliver meaningful impact through design.",
+  "email": "viet@example.com",
+  "social": {
+    "dribbble": "https://dribbble.com",
+    "behance": "https://behance.net",
+    "linkedin": "https://linkedin.com",
+    "framer": "https://framer.com"
+  },
+  "clients": [
+    { "name": "Logoipsum", "logo": "/assets/images/client-1.svg" },
+    { "name": "Logoipsum", "logo": "/assets/images/client-2.svg" },
+    { "name": "Logoipsum", "logo": "/assets/images/client-3.svg" },
+    { "name": "Logoipsum", "logo": "/assets/images/client-4.svg" },
+    { "name": "Logoipsum", "logo": "/assets/images/client-5.svg" }
+  ]
+}

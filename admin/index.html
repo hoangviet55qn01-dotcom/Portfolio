@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Portfolio CMS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Quill.js Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <style>
+    body { background: #f8f8f8; }
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+    }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-gray  { background: var(--color-border-light); color: var(--color-text-secondary); }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--color-text);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .drag-handle {
+      cursor: grab;
+      color: var(--color-border);
+      font-size: 16px;
+      padding: 0 4px;
+    }
+    #quill-editor {
+      min-height: 200px;
+    }
+    .ql-editor {
+      min-height: 200px;
+      font-family: var(--font-primary);
+    }
+    .empty-state {
+      padding: var(--space-12);
+      text-align: center;
+      color: var(--color-text-secondary);
+    }
+    .empty-state p { font-size: var(--font-size-sm); margin-top: var(--space-2); }
+  </style>
+</head>
+<body class="admin-body">
+
+<div class="admin-layout">
+
+  <!-- SIDEBAR NAV -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">CMS <span>Admin</span></div>
+    <nav class="admin-nav">
+      <button class="admin-nav-item active" data-section="projects">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Projects
+      </button>
+      <button class="admin-nav-item" data-section="experiences">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+          <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+        </svg>
+        Experiences
+      </button>
+      <button class="admin-nav-item" data-section="export">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export JSON
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+
+    <!-- ── PROJECTS SECTION ── -->
+    <div id="section-projects" class="admin-section active">
+      <div class="admin-header">
+        <h1>Projects</h1>
+        <button class="btn btn-primary" onclick="openProjectForm()">+ New Project</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th style="width:56px">Thumb</th>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Categories</th>
+              <th>Date</th>
+              <th>Order</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="projects-tbody">
+            <tr><td colspan="8"><div class="empty-state"><p>No projects yet. Click "+ New Project" to add one.</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── EXPERIENCES SECTION ── -->
+    <div id="section-experiences" class="admin-section">
+      <div class="admin-header">
+        <h1>Experiences</h1>
+        <button class="btn btn-primary" onclick="openExperienceForm()">+ New Experience</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th style="width:56px">Logo</th>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Period</th>
+              <th>Order</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="experiences-tbody">
+            <tr><td colspan="7"><div class="empty-state"><p>No experiences yet. Click "+ New Experience" to add one.</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── EXPORT SECTION ── -->
+    <div id="section-export" class="admin-section">
+      <div class="admin-header">
+        <h1>Export JSON</h1>
+      </div>
+
+      <div class="export-section">
+        <h3>projects.json</h3>
+        <p>Download all project data. Place this file at <code>/data/projects.json</code> in your site.</p>
+        <button class="btn btn-primary" onclick="exportJSON('projects')">Download projects.json</button>
+      </div>
+
+      <div class="export-section" style="margin-top:16px">
+        <h3>experiences.json</h3>
+        <p>Download all experience data. Place this file at <code>/data/experiences.json</code> in your site.</p>
+        <button class="btn btn-primary" onclick="exportJSON('experiences')">Download experiences.json</button>
+      </div>
+
+      <div class="export-section" style="margin-top:16px">
+        <h3>Import JSON</h3>
+        <p>Import existing JSON data to continue editing.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label class="btn btn-outline" style="cursor:pointer">
+            Import projects.json
+            <input type="file" accept=".json" style="display:none" onchange="importJSON(event,'projects')">
+          </label>
+          <label class="btn btn-outline" style="cursor:pointer">
+            Import experiences.json
+            <input type="file" accept=".json" style="display:none" onchange="importJSON(event,'experiences')">
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admin-main -->
+</div><!-- /admin-layout -->
+
+<!-- ══════════════════════════════════
+     PROJECT FORM MODAL
+══════════════════════════════════ -->
+<div id="project-form-overlay" class="admin-form-overlay">
+  <div class="admin-form-modal">
+    <div class="admin-form-header">
+      <h2 id="project-form-title">New Project</h2>
+      <button class="admin-form-close" onclick="closeProjectForm()">✕</button>
+    </div>
+
+    <form id="project-form" onsubmit="saveProject(event)">
+      <input type="hidden" id="project-id">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label">Project Name *</label>
+          <input type="text" id="f-name" class="form-input" required placeholder="TPBank">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Slug *</label>
+          <input type="text" id="f-slug" class="form-input" required placeholder="tpbank">
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">Description *</label>
+          <textarea id="f-description" class="form-textarea" rows="4" required placeholder="Project description..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <input type="text" id="f-role" class="form-input" placeholder="UX/UI Designer">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="text" id="f-date" class="form-input" placeholder="January 2024">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category 1</label>
+          <select id="f-cat1" class="form-select">
+            <option value="">— none —</option>
+            <option value="Product">Product</option>
+            <option value="Brand">Brand</option>
+            <option value="Web">Web</option>
+            <option value="Mobile">Mobile</option>
+            <option value="Framer Development">Framer Development</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category 2</label>
+          <select id="f-cat2" class="form-select">
+            <option value="">— none —</option>
+            <option value="Product">Product</option>
+            <option value="Brand">Brand</option>
+            <option value="Web">Web</option>
+            <option value="Mobile">Mobile</option>
+            <option value="Framer Development">Framer Development</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Outcome</label>
+          <input type="text" id="f-outcome" class="form-input" placeholder="Boosted visibility by 50%">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Live URL</label>
+          <input type="url" id="f-live-url" class="form-input" placeholder="https://...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Order</label>
+          <input type="number" id="f-order" class="form-input" placeholder="1" min="1">
+        </div>
+
+        <!-- THUMBNAIL IMAGE -->
+        <div class="form-group">
+          <label class="form-label">Thumbnail Image</label>
+          <div class="form-file-upload">
+            <div class="file-upload-area" onclick="document.getElementById('f-thumb').click()">
+              <input type="file" id="f-thumb" accept="image/*" onchange="previewFile(this,'prev-thumb')">
+              <div class="file-upload-text">Click to upload image</div>
+            </div>
+            <img id="prev-thumb" class="file-preview" alt="Thumbnail preview">
+          </div>
+          <input type="hidden" id="f-thumb-data">
+        </div>
+
+        <!-- THUMBNAIL VIDEO/GIF -->
+        <div class="form-group">
+          <label class="form-label">Hover Video / GIF</label>
+          <div class="form-file-upload">
+            <div class="file-upload-area" onclick="document.getElementById('f-video').click()">
+              <input type="file" id="f-video" accept="video/*,image/gif" onchange="previewFile(this,'prev-video')">
+              <div class="file-upload-text">Click to upload video or GIF</div>
+            </div>
+            <img id="prev-video" class="file-preview" alt="Video preview">
+          </div>
+          <input type="hidden" id="f-video-data">
+        </div>
+
+        <!-- HEADER IMAGE -->
+        <div class="form-group full-width">
+          <label class="form-label">Header Image</label>
+          <div class="form-file-upload">
+            <div class="file-upload-area" onclick="document.getElementById('f-header').click()">
+              <input type="file" id="f-header" accept="image/*" onchange="previewFile(this,'prev-header')">
+              <div class="file-upload-text">Click to upload header image</div>
+            </div>
+            <img id="prev-header" class="file-preview" alt="Header preview" style="width:120px;height:80px">
+          </div>
+          <input type="hidden" id="f-header-data">
+        </div>
+
+        <!-- RICH TEXT CONTENT -->
+        <div class="form-group full-width quill-editor-wrap">
+          <label class="form-label">Article Content (Rich Text)</label>
+          <div id="quill-editor"></div>
+          <input type="hidden" id="f-content">
+        </div>
+
+      </div><!-- /form-grid -->
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeProjectForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     EXPERIENCE FORM MODAL
+══════════════════════════════════ -->
+<div id="experience-form-overlay" class="admin-form-overlay">
+  <div class="admin-form-modal" style="max-width:560px">
+    <div class="admin-form-header">
+      <h2 id="experience-form-title">New Experience</h2>
+      <button class="admin-form-close" onclick="closeExperienceForm()">✕</button>
+    </div>
+
+    <form id="experience-form" onsubmit="saveExperience(event)">
+      <input type="hidden" id="exp-id">
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <label class="form-label">Company Logo</label>
+          <div class="form-file-upload">
+            <div class="file-upload-area" onclick="document.getElementById('exp-logo').click()">
+              <input type="file" id="exp-logo" accept="image/*" onchange="previewFile(this,'prev-exp-logo')">
+              <div class="file-upload-text">Click to upload logo</div>
+            </div>
+            <img id="prev-exp-logo" class="file-preview" alt="Logo preview">
+          </div>
+          <input type="hidden" id="exp-logo-data">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input type="text" id="exp-company" class="form-input" required placeholder="Whop">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Role *</label>
+          <input type="text" id="exp-role" class="form-input" required placeholder="Product Designer">
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">Description</label>
+          <textarea id="exp-description" class="form-textarea" rows="3" placeholder="Brief description of the role..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Start Year *</label>
+          <input type="text" id="exp-start" class="form-input" required placeholder="2024">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">End Year</label>
+          <input type="text" id="exp-end" class="form-input" placeholder="Leave blank for Present">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Order</label>
+          <input type="number" id="exp-order" class="form-input" placeholder="1" min="1">
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeExperienceForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Experience</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+/* ============================================
+   ADMIN CMS — localStorage-based data store
+   ============================================ */
+
+// ─── STATE ──────────────────────────────────
+let projects = [];
+let experiences = [];
+let editingProjectId = null;
+let editingExpId = null;
+let quill = null;
+
+// ─── INIT ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load from localStorage or fetch from JSON files
+  projects = loadData('projects') || await fetchInitial('/data/projects.json') || [];
+  experiences = loadData('experiences') || await fetchInitial('/data/experiences.json') || [];
+  renderProjectsTable();
+  renderExperiencesTable();
+  initQuill();
+  initNav();
+});
+
+async function fetchInitial(path) {
+  try {
+    const r = await fetch(path);
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+function loadData(key) {
+  const raw = localStorage.getItem('portfolio_data_' + key);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+
+function saveData(key, data) {
+  localStorage.setItem('portfolio_data_' + key, JSON.stringify(data));
+  // Also write to the path that main.js reads
+  const lsKey = 'portfolio_data_' + key;
+  localStorage.setItem('portfolio_' + key, JSON.stringify(data));
+}
+
+// ─── QUILL INIT ──────────────────────────────
+function initQuill() {
+  quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: 'Write project content here...',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline'],
+        [{ 'header': [2, 3, false] }],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ]
+    }
+  });
+}
+
+// ─── NAV ─────────────────────────────────────
+function initNav() {
+  document.querySelectorAll('.admin-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('section-' + btn.dataset.section).classList.add('active');
+    });
+  });
+}
+
+// ─── TOAST ───────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── FILE PREVIEW ────────────────────────────
+function previewFile(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  const preview = document.getElementById(previewId);
+  reader.onload = e => {
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    // Store base64 in hidden input
+    const hiddenId = input.id + '-data';
+    const hidden = document.getElementById(hiddenId);
+    if (hidden) hidden.value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── PROJECTS TABLE ──────────────────────────
+function renderProjectsTable() {
+  const tbody = document.getElementById('projects-tbody');
+  if (!projects.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>No projects yet. Click "+ New Project" to add one.</p></div></td></tr>';
+    return;
+  }
+  const sorted = [...projects].sort((a, b) => (a.order || 99) - (b.order || 99));
+  tbody.innerHTML = sorted.map(p => `
+    <tr data-id="${p.id}">
+      <td><span class="drag-handle">⠿</span></td>
+      <td>
+        ${p.thumbnail
+          ? `<img src="${p.thumbnail}" class="thumb-preview" alt="">`
+          : `<div class="thumb-preview" style="background:var(--color-border-light);border-radius:var(--radius-sm)"></div>`
+        }
+      </td>
+      <td style="font-weight:500">${p.name}</td>
+      <td><code style="font-size:12px;color:var(--color-text-secondary)">${p.slug}</code></td>
+      <td>${(p.categories || []).join(' · ')}</td>
+      <td>${p.date || '—'}</td>
+      <td>${p.order || '—'}</td>
+      <td>
+        <div class="admin-actions">
+          <button class="admin-btn-edit" onclick="editProject(${p.id})">Edit</button>
+          <button class="admin-btn-delete" onclick="deleteProject(${p.id})">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ─── PROJECT FORM ────────────────────────────
+function openProjectForm(project = null) {
+  editingProjectId = project ? project.id : null;
+  document.getElementById('project-form-title').textContent = project ? 'Edit Project' : 'New Project';
+  document.getElementById('project-form').reset();
+  document.getElementById('project-id').value = project ? project.id : '';
+  // Reset previews
+  ['prev-thumb','prev-video','prev-header'].forEach(id => {
+    const el = document.getElementById(id);
+    el.src = '';
+    el.style.display = 'none';
+  });
+  ['f-thumb-data','f-video-data','f-header-data','f-content'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  if (quill) quill.root.innerHTML = '';
+
+  if (project) {
+    document.getElementById('f-name').value = project.name || '';
+    document.getElementById('f-slug').value = project.slug || '';
+    document.getElementById('f-description').value = project.description || '';
+    document.getElementById('f-role').value = project.role || '';
+    document.getElementById('f-date').value = project.date || '';
+    document.getElementById('f-cat1').value = (project.categories || [])[0] || '';
+    document.getElementById('f-cat2').value = (project.categories || [])[1] || '';
+    document.getElementById('f-outcome').value = project.outcome || '';
+    document.getElementById('f-live-url').value = project.liveUrl || '';
+    document.getElementById('f-order').value = project.order || '';
+    if (quill && project.content) quill.root.innerHTML = project.content;
+    // Show existing media
+    if (project.thumbnail) {
+      const img = document.getElementById('prev-thumb');
+      img.src = project.thumbnail;
+      img.style.display = 'block';
+      document.getElementById('f-thumb-data').value = project.thumbnail;
+    }
+    if (project.thumbnailVideo) {
+      document.getElementById('f-video-data').value = project.thumbnailVideo;
+    }
+    if (project.headerImage) {
+      const img = document.getElementById('prev-header');
+      img.src = project.headerImage;
+      img.style.display = 'block';
+      document.getElementById('f-header-data').value = project.headerImage;
+    }
+  }
+
+  // Auto-slug from name
+  document.getElementById('f-name').addEventListener('input', function() {
+    if (!editingProjectId) {
+      document.getElementById('f-slug').value = slugify(this.value);
+    }
+  });
+
+  document.getElementById('project-form-overlay').classList.add('open');
+}
+
+function closeProjectForm() {
+  document.getElementById('project-form-overlay').classList.remove('open');
+  editingProjectId = null;
+}
+
+function editProject(id) {
+  const p = projects.find(p => p.id === id);
+  if (p) openProjectForm(p);
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  projects = projects.filter(p => p.id !== id);
+  saveData('projects', projects);
+  renderProjectsTable();
+  showToast('Project deleted');
+}
+
+function saveProject(e) {
+  e.preventDefault();
+  const cats = [
+    document.getElementById('f-cat1').value,
+    document.getElementById('f-cat2').value
+  ].filter(Boolean);
+
+  if (quill) {
+    document.getElementById('f-content').value = quill.root.innerHTML;
+  }
+
+  const project = {
+    id: editingProjectId || Date.now(),
+    name: document.getElementById('f-name').value.trim(),
+    slug: document.getElementById('f-slug').value.trim(),
+    description: document.getElementById('f-description').value.trim(),
+    role: document.getElementById('f-role').value.trim(),
+    date: document.getElementById('f-date').value.trim(),
+    categories: cats,
+    outcome: document.getElementById('f-outcome').value.trim(),
+    liveUrl: document.getElementById('f-live-url').value.trim(),
+    order: parseInt(document.getElementById('f-order').value) || 99,
+    thumbnail: document.getElementById('f-thumb-data').value || '',
+    thumbnailVideo: document.getElementById('f-video-data').value || '',
+    headerImage: document.getElementById('f-header-data').value || '',
+    content: document.getElementById('f-content').value
+  };
+
+  if (editingProjectId) {
+    const idx = projects.findIndex(p => p.id === editingProjectId);
+    if (idx !== -1) projects[idx] = project;
+  } else {
+    projects.push(project);
+  }
+
+  saveData('projects', projects);
+  renderProjectsTable();
+  closeProjectForm();
+  showToast(editingProjectId ? 'Project updated!' : 'Project created!');
+}
+
+// ─── EXPERIENCES TABLE ───────────────────────
+function renderExperiencesTable() {
+  const tbody = document.getElementById('experiences-tbody');
+  if (!experiences.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No experiences yet. Click "+ New Experience" to add one.</p></div></td></tr>';
+    return;
+  }
+  const sorted = [...experiences].sort((a, b) => (a.order || 99) - (b.order || 99));
+  tbody.innerHTML = sorted.map(exp => `
+    <tr data-id="${exp.id}">
+      <td><span class="drag-handle">⠿</span></td>
+      <td>
+        ${exp.logo
+          ? `<img src="${exp.logo}" class="thumb-preview" alt="" style="width:36px;height:36px;border-radius:6px">`
+          : `<div style="width:36px;height:36px;border-radius:6px;background:var(--color-border-light)"></div>`
+        }
+      </td>
+      <td style="font-weight:500">${exp.company}</td>
+      <td style="color:var(--color-text-secondary)">${exp.role}</td>
+      <td>${exp.startDate} – ${exp.endDate || 'Present'}</td>
+      <td>${exp.order || '—'}</td>
+      <td>
+        <div class="admin-actions">
+          <button class="admin-btn-edit" onclick="editExperience(${exp.id})">Edit</button>
+          <button class="admin-btn-delete" onclick="deleteExperience(${exp.id})">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ─── EXPERIENCE FORM ─────────────────────────
+function openExperienceForm(exp = null) {
+  editingExpId = exp ? exp.id : null;
+  document.getElementById('experience-form-title').textContent = exp ? 'Edit Experience' : 'New Experience';
+  document.getElementById('experience-form').reset();
+  document.getElementById('exp-id').value = exp ? exp.id : '';
+  const prevLogo = document.getElementById('prev-exp-logo');
+  prevLogo.src = '';
+  prevLogo.style.display = 'none';
+  document.getElementById('exp-logo-data').value = '';
+
+  if (exp) {
+    document.getElementById('exp-company').value = exp.company || '';
+    document.getElementById('exp-role').value = exp.role || '';
+    document.getElementById('exp-description').value = exp.description || '';
+    document.getElementById('exp-start').value = exp.startDate || '';
+    document.getElementById('exp-end').value = exp.endDate || '';
+    document.getElementById('exp-order').value = exp.order || '';
+    if (exp.logo) {
+      prevLogo.src = exp.logo;
+      prevLogo.style.display = 'block';
+      document.getElementById('exp-logo-data').value = exp.logo;
+    }
+  }
+
+  document.getElementById('experience-form-overlay').classList.add('open');
+}
+
+function closeExperienceForm() {
+  document.getElementById('experience-form-overlay').classList.remove('open');
+  editingExpId = null;
+}
+
+function editExperience(id) {
+  const exp = experiences.find(e => e.id === id);
+  if (exp) openExperienceForm(exp);
+}
+
+function deleteExperience(id) {
+  if (!confirm('Delete this experience?')) return;
+  experiences = experiences.filter(e => e.id !== id);
+  saveData('experiences', experiences);
+  renderExperiencesTable();
+  showToast('Experience deleted');
+}
+
+function saveExperience(e) {
+  e.preventDefault();
+  const exp = {
+    id: editingExpId || Date.now(),
+    company: document.getElementById('exp-company').value.trim(),
+    role: document.getElementById('exp-role').value.trim(),
+    description: document.getElementById('exp-description').value.trim(),
+    startDate: document.getElementById('exp-start').value.trim(),
+    endDate: document.getElementById('exp-end').value.trim(),
+    order: parseInt(document.getElementById('exp-order').value) || 99,
+    logo: document.getElementById('exp-logo-data').value || ''
+  };
+
+  if (editingExpId) {
+    const idx = experiences.findIndex(e => e.id === editingExpId);
+    if (idx !== -1) experiences[idx] = exp;
+  } else {
+    experiences.push(exp);
+  }
+
+  saveData('experiences', experiences);
+  renderExperiencesTable();
+  closeExperienceForm();
+  showToast(editingExpId ? 'Experience updated!' : 'Experience created!');
+}
+
+// ─── EXPORT ──────────────────────────────────
+function exportJSON(key) {
+  const data = key === 'projects' ? projects : experiences;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = key + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(key + '.json downloaded!');
+}
+
+// ─── IMPORT ──────────────────────────────────
+function importJSON(event, key) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('Invalid format');
+      if (key === 'projects') {
+        projects = data;
+        saveData('projects', projects);
+        renderProjectsTable();
+      } else {
+        experiences = data;
+        saveData('experiences', experiences);
+        renderExperiencesTable();
+      }
+      showToast(key + '.json imported!');
+    } catch(err) {
+      alert('Invalid JSON file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── CLOSE MODALS ON OVERLAY CLICK ──────────
+document.getElementById('project-form-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeProjectForm();
+});
+document.getElementById('experience-form-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeExperienceForm();
+});
+
+// ─── ESC KEY ─────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeProjectForm();
+    closeExperienceForm();
+  }
+});
+
+// ─── SLUG UTIL ───────────────────────────────
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+</script>
+</body>
+</html>
