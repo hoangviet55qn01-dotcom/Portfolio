@@ -11,7 +11,8 @@
     "dribbble": "https://dribbble.com",
     "behance": "https://behance.net",
     "linkedin": "https://linkedin.com",
-    "framer": "https://framer.com"
+    "framer": "https://framer.com",
+    "github": "https://github.com"
   },
   "clients": [
     { "name": "Logoipsum", "logo": "/assets/images/client-1.svg" },
